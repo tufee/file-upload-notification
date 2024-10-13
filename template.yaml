@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: file-upload-notification
+
+Globals:
+  Function:
+    Timeout: 30
+
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+Resources:
+  fileUploadNotificationGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: file-upload-notification-api
+      StageName: dev
+  fileUploadNotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ./fileUploadNotification/app.handler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref fileUploadNotificationBucket
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref fileUploadNotificationBucket
+      Events:
+        uploadFile:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
+  fileUploadNotificationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: file-upload-notification-bucket
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Ref: ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+Outputs:
+  fileUploadNotificationGateway:
+    Description: API Gateway endpoint URL for DEV stage for File Upload Notification Function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/dev/upload/'
+  fileUploadNotificationFunction:
+    Description: Notification File Upload Lambda Function ARN
+    Value: !GetAtt fileUploadNotificationFunction.Arn
+  fileUploadNotificationFunctionRole:
+    Description: Implicit IAM Role created for Notification File Upload function
+    Value: !GetAtt fileUploadNotificationFunctionRole.Arn

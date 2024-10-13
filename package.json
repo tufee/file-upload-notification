@@ -1,0 +1,21 @@
+{
+  "name": "file-upload-notification",
+  "version": "1.0.0",
+  "description": "File upload notification",
+  "main": "./fileUploadNotification/app.js",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.670.0",
+    "axios": ">=1.6.0",
+    "busboy": "^1.6.0"
+  },
+  "scripts": {
+    "test": "mocha tests/unit/"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.664.0",
+    "chai": "^4.3.6",
+    "mocha": "^10.2.0"
+  }
+}
