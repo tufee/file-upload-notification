@@ -1,20 +1,21 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import busboy from 'busboy'
 
-const contentTypeToLowerCase = request => {
-  if (request.headers['Content-Type']) {
-    const contentTypeValue = request.headers['Content-Type']
-    request.headers['content-type'] = contentTypeValue
-    return request
-  }
-}
-
 const processUpload = async event => {
   const s3 = new S3Client({ region: process.env.AWS_REGION })
 
   return new Promise((resolve, reject) => {
-    const parsedEvent = contentTypeToLowerCase(event)
-    const bb = busboy({ headers: parsedEvent.headers['content-type'] })
+    const contentType =
+      event.headers['content-type'] || event.headers['Content-Type']
+
+    if (!contentType.startsWith('multipart/form-data')) {
+      return {
+        statusCode: 400,
+        body: 'Invalid Content-Type header, expected multipart/form-data',
+      }
+    }
+
+    const bb = busboy({ headers: { 'content-type': contentType } })
 
     bb.on('file', (_name, file, info) => {
       const { filename, mimetype } = info
@@ -28,7 +29,7 @@ const processUpload = async event => {
         const fileBuffer = Buffer.concat(fileChunks)
 
         const params = {
-          Bucket: process.env.BucketName,
+          Bucket: process.env.BUCKET_NAME,
           Key: filename,
           Body: fileBuffer,
           ContentType: mimetype,
