@@ -18,7 +18,7 @@ const processUpload = async event => {
     const bb = busboy({ headers: { 'content-type': contentType } })
 
     bb.on('file', (_name, file, info) => {
-      const { filename, mimetype } = info
+      const { filename, _encoding, mimeType } = info
       const fileChunks = []
 
       file.on('data', data => {
@@ -29,10 +29,10 @@ const processUpload = async event => {
         const fileBuffer = Buffer.concat(fileChunks)
 
         const params = {
-          Bucket: process.env.BUCKET_NAME,
+          Bucket: process.env.BucketName,
           Key: filename,
           Body: fileBuffer,
-          ContentType: mimetype,
+          ContentType: mimeType,
         }
 
         try {

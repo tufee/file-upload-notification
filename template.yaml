@@ -15,6 +15,7 @@ Resources:
     Properties:
       Name: file-upload-notification-api
       StageName: dev
+
   fileUploadNotificationFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -24,7 +25,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          BUCKET_NAME: !Ref fileUploadNotificationBucket
+          BucketName: file-upload-notification-bucket
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref fileUploadNotificationBucket
@@ -34,6 +35,7 @@ Resources:
           Properties:
             Path: /upload
             Method: post
+
   fileUploadNotificationBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -46,6 +48,7 @@ Resources:
         Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
       ResourceQuery:
         Type: CLOUDFORMATION_STACK_1_0
+
   ApplicationInsightsMonitoring:
     Type: AWS::ApplicationInsights::Application
     Properties:
@@ -56,9 +59,11 @@ Outputs:
   fileUploadNotificationGateway:
     Description: API Gateway endpoint URL for DEV stage for File Upload Notification Function
     Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/dev/upload/'
+
   fileUploadNotificationFunction:
     Description: Notification File Upload Lambda Function ARN
     Value: !GetAtt fileUploadNotificationFunction.Arn
+
   fileUploadNotificationFunctionRole:
     Description: Implicit IAM Role created for Notification File Upload function
     Value: !GetAtt fileUploadNotificationFunctionRole.Arn
